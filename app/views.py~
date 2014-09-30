@@ -5,13 +5,13 @@ from app import app
 from flask.ext.socketio import send, emit
 from app import socketio
 from threading import Thread, current_thread
-# from tasks import make_celery
+
 # import binascii
 import datetime
 import time
-# import copy
+
 import json
-# import serial
+
 from converter import *
 
 clients = 0
@@ -21,7 +21,6 @@ def listening():
 
 #ser.write(binascii.a2b_hex('69'))
     while True:
-        # now = datetime.datetime.now()
         rcv = ser.read(16)
         seq = map(ord,rcv)
         pkt = parsePkt(seq)
@@ -31,16 +30,9 @@ def listening():
         presArrary.append(pkt['pres'])
         if len(presArrary) > avewindow:
             presArrary.pop(0)
-
-            # ave = sum(presArrary) / len(presArrary)
-            # pkt['avePres'] = ave
             ave = movingaverage(presArrary, 5)
-        # print ave
             pkt['avePres'] = np.mean(ave)
             dpres = int(pkt['avePres'])
-        # time_diff =  pkt['time'] -now
-        # if time_diff.total_seconds() > 0.15:
-            # continue
             socketio.emit('push', json.dumps(pkt), namespace='/main')
             socketio.emit('time', pkt['time'], namespace='/main')
             socketio.emit('dpres', json.dumps(dpres))
@@ -61,20 +53,6 @@ listen = Thread(target=listening,name="ListenSensor")
 def index():
     return render_template("index.html",
         title = 'APS Demo')
-
-@app.route('/data')
-def data():
-    return render_template("data.html",
-        title = "Number Data")
-
-@app.route('/radi')
-def radi():
-    return render_template("radi.html",
-        title = "Radiant Temperature")
-
-@app.route('/realtime')
-def realtime():
-    return render_template('realtime.html')
 
 
 @socketio.on('my event')

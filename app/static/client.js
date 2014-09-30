@@ -42,9 +42,9 @@ var n = 50,
     count = 0,
     data = d3.range(n).map(function() { return 0; });
 
-var margin = {top: 20, right: 20, bottom: 20, left: 10},
-    width = 800 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+var margin = {top: 20, right: 40, bottom: 20, left: 0},
+    width = 360 - margin.left - margin.right,
+    height = 360 - margin.top - margin.bottom;
 
 // var x = d3.scale.linear()
 //     .domain([1, n - 2])
@@ -63,6 +63,7 @@ var line = d3.svg.line()
     .y(function(d, i) { return y(d); });
 
 var svg = d3.select("#chart").append("svg")
+    .attr("id", "linechart")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
@@ -90,6 +91,15 @@ var path = svg.append("g")
     .datum(data)
     .attr("class", "line")
     .attr("d", line);
+
+d3.select("g").append("foreignObject")
+    .attr("id", "charap")
+    .attr("width", "15px")
+    .attr("height", "20px")
+    .attr("x",0)
+    .attr("y",-10)
+    .html("<p class='chara'></p>");    
+
 
 // setTimeout(tick(), 1000);
   var drawing = false;
@@ -148,6 +158,15 @@ svg.select(".line")
       .each("end", tick);
 
 
+charay = (data[24] + 30 - middle)/60 * 320 -18;
+d3.select("#charap").transition()
+        .duration(100)
+        .attr("x",150)
+        .attr("y", charay);
+        //.attr("transform","translate(150,"+ charay+")");
+
+
+
   // pop the old data point off the front
   data.shift();
 }
@@ -156,7 +175,10 @@ svg.select(".line")
 
 function panel(mid){
 // Set Up
-  var pi = Math.PI, width=600,  height=400; var iR=170;  var oR=110;
+  var pi = Math.PI; var iR=170;  var oR=110;
+  var margin = {top: 20, right: 5, bottom: 20, left: 5},
+    width = 360 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
   var cur_color = 'limegreen';  var new_color, hold; var max = Math.floor(mid + 30), min = Math.floor(mid - 30), current = Math.floor(mid);
   var arc = d3.svg.arc().innerRadius(iR).outerRadius(oR).startAngle(-90 * (pi/180)); // Arc Defaults
   // Place svg element
@@ -177,7 +199,7 @@ function panel(mid){
   var max = Math.floor(mid + 30), min = Math.floor(mid - 30);
   pres = Math.floor($scope.data.avePres);
   var num = pres; var numPi = (num - min - 30)  * (pi/60);// Get value
-  if((num - min)  >= 38) {new_color = 'red';} else if(num - min >= 24) {new_color = 'orange';} else {new_color = 'limegreen';} // Get new color
+  if((num - min)  >= 38) {new_color = 'limegreen';} else if(num - min >= 24) {new_color = 'orange';} else {new_color = 'red';} // Get new color
   current.transition().text(Math.floor(num));// Text transition
   // Arc Transition
   foreground.transition().duration(750).styleTween("fill", function() { return d3.interpolate(new_color, cur_color); }).call(arcTween, numPi);

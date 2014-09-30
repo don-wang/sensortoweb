@@ -9,12 +9,7 @@ html{
 .list-group span{
 	font-size:18px;
 }
-@media (min-width: 768px){
-.container{
-  width: 100%;
-  margin: auto;
-}
-  }
+
 
 #room{
 	width: 100%;
@@ -33,4 +28,25 @@ svg {
   fill: none;
   stroke: #000;
   shape-rendering: crispEdges;
+}
+#linechart{
+    position: relative;
+}
+.chara{
+  /* steps causes the animation to chunk into 12 equal pieces */
+  -webkit-animation: run-cycle 1s steps(4) infinite;
+  animation: run-cycle 1s steps(4) infinite;
+  background: url(Running-mario.gif) 0 0 no-repeat; 
+  height: 20px;
+  width: 15px;
+  margin: 0 auto;
+}
+
+@keyframes run-cycle {  
+  0% {background-position: 0 0; } 
+  100% {background-position: -60px 0; } /* Must be full height of sprite or skipping will happen.*/
+}
+@-webkit-keyframes run-cycle {  
+  0% {background-position: 0 0; } 
+  100% {background-position: -60px 0; } /* Must be full height of sprite or skipping will happen.*/
 }
