@@ -1,0 +1,36 @@
+html{
+	font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+.list-group a {
+	font-size: 20px;
+}
+
+.list-group span{
+	font-size:18px;
+}
+@media (min-width: 768px){
+.container{
+  width: 100%;
+  margin: auto;
+}
+  }
+
+#room{
+	width: 100%;
+	height: 800px;
+}
+svg {
+  font: 10px sans-serif;
+}
+.line {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}

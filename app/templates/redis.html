@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block head %}
+      <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+{% endblock %}
+{% block content %}
+
+<table>
+	<tr>
+		<td>
+			<div><input ng-click="count()" type="button" value="Data Count"></div>
+		</td>
+	</tr>
+    <tr>
+        <td>
+            <div><input ng-click="clear()" type="button" value="Clear"></div>
+        </td>
+    </tr>
+</table>
+<h2>Receive:</h2>
+<p>[[status]]</p>
+<div id="log"></div>
+{% endblock %}

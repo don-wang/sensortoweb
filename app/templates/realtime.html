@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+
+svg {
+  font: 10px sans-serif;
+}
+
+.line {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+
+</style>
+<script>
+
+
+</script>
+<h2>Receive:</h2>
+<p>[[status]]</p>
+<p>[[data]]</p>
+<div id="log" ng-controller="Realtime"></div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block head %}
+      <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1>Pressure Sensor Demo<small></small></h1>
+  <blockquote class="bg-info">
+  <p id="data">
+    Time:[[data.time]]<br>
+    Temp: [[data.temp]]<br>
+    Pl:[[data.pl]]<br>
+    Pa:[[data.pres]]<br>
+    DP:[[data.dpres]]<br>
+    Altitude:[[data.alti]]<br>
+    Average:[[data.avePres]]</p>
+</blockquote>
+<div id="panel"></div>
+</div>
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Chart</h3>
+  </div>
+  <div  class="panel-body">
+    <div id="chart"></div>
+</div>
+</div>
+<div id="log"></div>
+{% endblock %}
