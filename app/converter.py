@@ -110,14 +110,14 @@ def convPa(pkt):
     Po = Pl / (AT * Tr * Tr + BT * Tr + CT)
 
 
-    return Pl, Tr/256, Po
+    return round(Pl, 2), round(Tr/256, 2), round(Po, 2)
 
 def meterFromPa(pa):
     hpa = pa/100
     ret = math.pow(PRES_HP0 / hpa, 1 / PRES_PDEN) - 1
     ret = ret * (Tnow + PRES_TNOM)
     ret = ret / PRES_HDEN + Hnow
-    return ret
+    return round(ret, 2)
 
 def skipToDelim(seq):
     while(len(seq) > 0):

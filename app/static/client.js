@@ -36,16 +36,19 @@ app.controller('Ctrl', function($scope, socket) {
         return false;
     }
 
+$scope.middle = 0;
+$scope.range = 60; 
 var n = 50,
     duration = 200,
     now = new Date(Date.now() - duration),
     count = 0,
     data = d3.range(n).map(function() { return 0; });
-
-var margin = {top: 20, right: 40, bottom: 20, left: 0},
+var margin = {top: 20, right: 80, bottom: 20, left: 0},
     width = 360 - margin.left - margin.right,
     height = 360 - margin.top - margin.bottom;
 
+ 
+var drawing = false;
 // var x = d3.scale.linear()
 //     .domain([1, n - 2])
 //     .range([0, width]);
@@ -54,8 +57,9 @@ var x = d3.time.scale()
     .domain([now - (n - 2) * duration, now - duration])
     .range([0, width]);
 
-var y = d3.scale.linear();
-min = 0;
+var y = d3.scale.linear()
+    .domain([1, 0])
+    .range([height, 0]);
 
 var line = d3.svg.line()
     .interpolate("basis")
@@ -83,7 +87,7 @@ var axis = svg.append("g")
 svg.append("g")
     .attr("class", "y axis")
     .attr("transform", "translate(" + width + " ,0)")
-    .call(y.axis= d3.svg.axis().scale(y).orient("left"));
+    .call(y.axis= d3.svg.axis().scale(y).orient("right"));
 
 var path = svg.append("g")
     .attr("clip-path", "url(#clip)")
@@ -102,15 +106,14 @@ d3.select("g").append("foreignObject")
 
 
 // setTimeout(tick(), 1000);
-  var drawing = false;
-  var middle = 0
+
 tick();
 
 function tick() {
     if($scope.data){
     console.log($scope.data);
     }else{
-      console.log("null");
+      console.log("No data");
     }
 
   var d = $scope.data?$scope.data.avePres:0;
@@ -124,23 +127,23 @@ function tick() {
 
   data.push(d);
 
-  var max = d3.max(d3.values(data));
-  min = d3.min(d3.values(data));
+  var first = Math.floor(d3.max(d3.values(data)));
 
-  if(drawing == false && max != 0){
-    middle = max;
-    panel(middle);
-    y.domain([max +30, max - 30])
-      .range([height, 0]);
-      drawing = true;
+  if(drawing == false && first != 0){
+    $scope.middle = first;
+    drawing = true;
+    panel();
 
   }
 
-    svg.selectAll("g.y.axis")
-        .call(y.axis);
+  y.domain([$scope.middle + $scope.range/2, $scope.middle - $scope.range/2])
+    .range([height, 0]);
+
+  svg.selectAll("g.y.axis")
+      .call(y.axis);
 
   // redraw the line, and slide it to the left
-svg.select(".line")
+  svg.select(".line")
       .attr("d", line)
       .attr("transform", null);
 
@@ -158,13 +161,12 @@ svg.select(".line")
       .each("end", tick);
 
 
-charay = (data[24] + 30 - middle)/60 * 320 -18;
+charay = (data[24] + $scope.range/2 - $scope.middle)/$scope.range * height - 20;
 d3.select("#charap").transition()
         .duration(100)
-        .attr("x",150)
+        .attr("x",(width - 30) /2)
         .attr("y", charay);
         //.attr("transform","translate(150,"+ charay+")");
-
 
 
   // pop the old data point off the front
@@ -173,13 +175,14 @@ d3.select("#charap").transition()
 
 
 
-function panel(mid){
+function panel(){
 // Set Up
   var pi = Math.PI; var iR=170;  var oR=110;
   var margin = {top: 20, right: 5, bottom: 20, left: 5},
     width = 360 - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom;
-  var cur_color = 'limegreen';  var new_color, hold; var max = Math.floor(mid + 30), min = Math.floor(mid - 30), current = Math.floor(mid);
+  var cur_color = 'limegreen';  var new_color, hold; 
+  var max = Math.floor($scope.middle + $scope.range/2), min = Math.floor($scope.middle - $scope.range/2), current = Math.floor($scope.middle);
   var arc = d3.svg.arc().innerRadius(iR).outerRadius(oR).startAngle(-90 * (pi/180)); // Arc Defaults
   // Place svg element
   var svg = d3.select("#chart").append("svg").attr("width", width).attr("height", height)
@@ -196,11 +199,14 @@ function panel(mid){
               .attr("text-anchor", "middle").style("font-size", "50").style("font-family", "Helvetica").text(current)
   // Update every x seconds
   setInterval(function() {
-  var max = Math.floor(mid + 30), min = Math.floor(mid - 30);
   pres = Math.floor($scope.data.avePres);
-  var num = pres; var numPi = (num - min - 30)  * (pi/60);// Get value
-  if((num - min)  >= 38) {new_color = 'limegreen';} else if(num - min >= 24) {new_color = 'orange';} else {new_color = 'red';} // Get new color
+  pres = (pres > $scope.middle + $scope.range/2)?$scope.middle + $scope.range/2:pres;
+  pres = (pres < $scope.middle - $scope.range/2)?$scope.middle + $scope.range/2:pres;
+  var num = pres; var numPi = (num - $scope.middle)  * (pi/$scope.range);// Get value
+  if((num - $scope.middle - $scope.range/2)  >= $scope.range*2/3) {new_color = 'limegreen';} else if(num - $scope.middle - $scope.range/2 >= $scope.range/3) {new_color = 'orange';} else {new_color = 'red';} // Get new color
   current.transition().text(Math.floor(num));// Text transition
+  max.transition().text(Math.floor($scope.middle + $scope.range/2));// Text transition
+  min.transition().text(Math.floor($scope.middle - $scope.range/2));// Text transition
   // Arc Transition
   foreground.transition().duration(750).styleTween("fill", function() { return d3.interpolate(new_color, cur_color); }).call(arcTween, numPi);
     // Set colors for next transition
