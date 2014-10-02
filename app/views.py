@@ -72,6 +72,8 @@ def test_message(message):
 @socketio.on('SEND')
 def send(msg):
     print msg
+    global clients
+    clients += 1
     if listen.isAlive() == False:
         listen.start()
         print "Start listening to Sensor"

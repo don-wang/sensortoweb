@@ -34,19 +34,19 @@ svg {
 }
 .chara{
   /* steps causes the animation to chunk into 12 equal pieces */
-  -webkit-animation: run-cycle 1s steps(4) infinite;
-  animation: run-cycle 1s steps(4) infinite;
-  background: url(Running-mario.gif) 0 0 no-repeat; 
-  height: 20px;
-  width: 15px;
+  -webkit-animation: run-cycle 0.5s steps(6) infinite;
+  animation: run-cycle 0.5s steps(4) infinite;
+  background: url(runningman.png) 0 0 no-repeat; 
+  height: 120px;
+  width: 66px;
   margin: 0 auto;
 }
 
 @keyframes run-cycle {  
   0% {background-position: 0 0; } 
-  100% {background-position: -60px 0; } /* Must be full height of sprite or skipping will happen.*/
+  100% {background-position: -415px 0; } /* Must be full height of sprite or skipping will happen.*/
 }
 @-webkit-keyframes run-cycle {  
   0% {background-position: 0 0; } 
-  100% {background-position: -60px 0; } /* Must be full height of sprite or skipping will happen.*/
+  100% {background-position: -415px 0; } /* Must be full height of sprite or skipping will happen.*/
 }

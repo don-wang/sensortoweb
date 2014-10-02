@@ -72,6 +72,14 @@ var svg = d3.select("#chart").append("svg")
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+svg.append("circle")
+    .attr("id", "backrect")
+    .attr("r", "20")
+    .attr("fill", "white")
+    .attr("cx", width * 0.8)
+    .attr("cy", height * 0.1)
+
+
 
 svg.append("defs").append("clipPath")
     .attr("id", "clip")
@@ -98,8 +106,8 @@ var path = svg.append("g")
 
 d3.select("g").append("foreignObject")
     .attr("id", "charap")
-    .attr("width", "15px")
-    .attr("height", "20px")
+    .attr("width", "69px")
+    .attr("height", "120px")
     .attr("x",0)
     .attr("y",-10)
     .html("<p class='chara'></p>");    
@@ -161,10 +169,10 @@ function tick() {
       .each("end", tick);
 
 
-charay = (data[24] + $scope.range/2 - $scope.middle)/$scope.range * height - 20;
+charay = (data[24] + $scope.range/2 - $scope.middle)/$scope.range * height - 100;
 d3.select("#charap").transition()
         .duration(100)
-        .attr("x",(width - 30) /2)
+        .attr("x",width /2 - 40)
         .attr("y", charay);
         //.attr("transform","translate(150,"+ charay+")");
 
@@ -200,17 +208,20 @@ function panel(){
   // Update every x seconds
   setInterval(function() {
   pres = Math.floor($scope.data.avePres);
+  cupa = pres;
   pres = (pres > $scope.middle + $scope.range/2)?$scope.middle + $scope.range/2:pres;
   pres = (pres < $scope.middle - $scope.range/2)?$scope.middle + $scope.range/2:pres;
   var num = pres; var numPi = (num - $scope.middle)  * (pi/$scope.range);// Get value
-  if((num - $scope.middle - $scope.range/2)  >= $scope.range*2/3) {new_color = 'limegreen';} else if(num - $scope.middle - $scope.range/2 >= $scope.range/3) {new_color = 'orange';} else {new_color = 'red';} // Get new color
-  current.transition().text(Math.floor(num));// Text transition
+  if((num - $scope.middle + $scope.range/2)  >= $scope.range*2/3) {new_color = 'limegreen';} else if(num - $scope.middle + $scope.range/2 >= $scope.range/3) {new_color = 'orange';} else {new_color = 'red';} // Get new color
+  current.transition().text(Math.floor(cupa));// Text transition
   max.transition().text(Math.floor($scope.middle + $scope.range/2));// Text transition
   min.transition().text(Math.floor($scope.middle - $scope.range/2));// Text transition
   // Arc Transition
   foreground.transition().duration(750).styleTween("fill", function() { return d3.interpolate(new_color, cur_color); }).call(arcTween, numPi);
     // Set colors for next transition
-  hold = cur_color; cur_color = new_color; new_color = hold;}, 1000); // Repeat every 1s
+  hold = cur_color; cur_color = new_color; new_color = hold;
+  d3.select("#backrect").attr("fill", new_color);
+  }, 1000); // Repeat every 1s
   function arcTween(transition, newAngle) {
     transition.attrTween("d", function(d) {var interpolate = d3.interpolate(d.endAngle, newAngle);
               return function(t) {d.endAngle = interpolate(t);  return arc(d);  };  }); } // Update animation
