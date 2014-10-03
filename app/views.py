@@ -15,23 +15,27 @@ import json
 from converter import *
 
 clients = 0
-
+avewindow = 40
 def listening():
     ser = serial.Serial('/dev/ttyACM0', 57600)
-
+    global avewindow
 #ser.write(binascii.a2b_hex('69'))
     while True:
         rcv = ser.read(16)
         seq = map(ord,rcv)
         pkt = parsePkt(seq)
         pkt['alti'] = meterFromPa(pkt['pres'])
-
-        avewindow = 40
+        print avewindow
         presArrary.append(pkt['pres'])
-        if len(presArrary) > avewindow:
-            presArrary.pop(0)
+        print len(presArrary)
+        if len(presArrary) >= avewindow:
+            while len(presArrary) >= avewindow:
+                presArrary.pop(0)
             ave = movingaverage(presArrary, 5)
-            pkt['avePres'] = np.mean(ave)
+            if avewindow == 1:
+                pkt['avePres'] = pkt['pres']
+            else:
+                pkt['avePres'] = np.mean(ave)
             dpres = int(pkt['avePres'])
             socketio.emit('push', json.dumps(pkt), namespace='/main')
             socketio.emit('time', pkt['time'], namespace='/main')
@@ -49,7 +53,6 @@ listen = Thread(target=listening,name="ListenSensor")
 
 
 @app.route('/')
-@app.route('/index')
 def index():
     return render_template("index.html",
         title = 'APS Demo')
@@ -68,6 +71,13 @@ def test_message(message):
     emit('my response',
         {'data': message['data'], 'count': session['receive_count']},
         broadcast=True)
+
+
+@socketio.on('changeAve', namespace='/main')
+def changeAve(data):
+    global avewindow
+    avewindow = int(data['avewindow'])
+    print "avewindow changed to %d" %avewindow
 
 @socketio.on('SEND')
 def send(msg):

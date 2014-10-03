@@ -18,6 +18,14 @@
   </blockquote>
   <div id="panel" class="row">
     <div class="form-group col-sm-3">
+          <label>Averaging times:</label>
+          <select class="form-control" ng-model="avewindow" ng-change="changeAve()">
+            <option>1</option>
+            <option>10</option>
+            <option>40</option>
+            <option>100</option>
+          </select>
+
           <label>Y-axis Range: <span class="badge">[[range]] Pa</span></label>
           <input type="range" name="points" min="10" max="1000" step="20" ng-model="range">
           <label>Center Value:</label>

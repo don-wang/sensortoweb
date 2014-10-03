@@ -35,7 +35,11 @@ app.controller('Ctrl', function($scope, socket) {
         socket.emit('clear');
         return false;
     }
-
+    $scope.changeAve = function(){
+        socket.emit('changeAve', {avewindow: $scope.avewindow});
+        return false;
+    }
+$scope.avewindow = 40;
 $scope.middle = 0;
 $scope.range = 60; 
 var n = 50,

@@ -93,10 +93,13 @@ def conv16bit(buf):
 
 
 def movingaverage(x, window):
-    y = np.empty(len(x)-window+1)
-    for i in range(len(y)):
-        y[i] = np.sum(x[i:i+window])/window
-    return y
+    if len(x) > window+1:
+        y = np.empty(len(x)-window+1)
+        for i in range(len(y)):
+            y[i] = np.sum(x[i:i+window])/window
+        return y
+    else:
+        return x
 
 def convPa(pkt):
     Dt = pkt['dptat']
