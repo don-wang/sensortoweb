@@ -19,28 +19,50 @@ avewindow = 40
 def listening():
     ser = serial.Serial('/dev/ttyACM0', 57600)
     global avewindow
+    global otpReady
 #ser.write(binascii.a2b_hex('69'))
+    for addr in otpAddr:
+        ser.write(binascii.a2b_hex("a5044b"+ addr['ahex'] +"00c3"))
     while True:
-        rcv = ser.read(16)
-        seq = map(ord,rcv)
-        pkt = parsePkt(seq)
-        pkt['alti'] = meterFromPa(pkt['pres'])
-        print avewindow
-        presArrary.append(pkt['pres'])
-        print len(presArrary)
-        if len(presArrary) >= avewindow:
-            while len(presArrary) >= avewindow:
-                presArrary.pop(0)
-            ave = movingaverage(presArrary, 5)
-            if avewindow == 1:
-                pkt['avePres'] = pkt['pres']
+        if otpReady == False:
+            print "Reading OTP"
+            socketio.emit('status', "Reading OTP", namespace='/main')
+            n = 0
+            while  n < 10:
+                rcv = ser.read(2)
+                seq = map(ord,rcv)
+                if seq[0] == 165 and seq[1] == 7:
+                    rcvn = ser.read(7)
+                    seqn = map(ord,rcvn)
+                    if seqn[2] == otpAddr[n]['adec']:
+                        buf = [seqn[3], seqn[4]]
+                        otpAddr[n]['otp'] = conv16bit(buf)
+                        otpAddr[n]['otpHex'] = hex(otpAddr[n]['otp'])
+                        n += 1
+            otpReady = True
+            constFromOtp()
+            socketio.emit('otp', json.dumps(otpAddr), namespace='/main')
+        else:
+            "OTP GOT"
+            rcv = ser.read(16)
+            seq = map(ord,rcv)
+            pkt = parsePkt(seq)
+            # pkt['alti'] = meterFromPa(pkt['pres'])
+            presArrary.append(pkt['pres'])
+            if len(presArrary) >= avewindow:
+                socketio.emit('status', "Working", namespace='/main')
+                while len(presArrary) >= avewindow:
+                    presArrary.pop(0)
+                ave = movingaverage(presArrary, 5)
+                if avewindow == 1:
+                    pkt['avePres'] = pkt['pres']
+                else:
+                    pkt['avePres'] = round(np.mean(ave), 2)
+                dpres = int(pkt['avePres'])
+                socketio.emit('push', json.dumps(pkt), namespace='/main')
+                socketio.emit('dpres', json.dumps(dpres))
             else:
-                pkt['avePres'] = np.mean(ave)
-            dpres = int(pkt['avePres'])
-            socketio.emit('push', json.dumps(pkt), namespace='/main')
-            socketio.emit('time', pkt['time'], namespace='/main')
-            socketio.emit('dpres', json.dumps(dpres))
-
+                socketio.emit('status', "Averaging Data", namespace='/main')
         # print(binascii.b2a_hex(rcv))
         # print pkt
         # time.sleep(1)
@@ -94,6 +116,7 @@ def send(msg):
 @socketio.on('connect', namespace='/main')
 def connect():
     global clients
+    global coeDict
     clients += 1
     print clients, "Clients Connected"
     # emit('connect',1)
@@ -103,7 +126,7 @@ def connect():
         print "Start listening to Sensor"
     else:
         print "Listening Thread already started"
-        emit('status', {'msg': 'Connected', 'count': 0})
+        emit('otp', json.dumps(otpAddr), namespace='/main')
 
 @socketio.on('connect')
 def connect():

@@ -5,20 +5,13 @@
 {% block content %}
 
 <div class="page-header">
-  <h1>Pressure Sensor Demo<small></small></h1>
-  <blockquote class="bg-info">
-  <p id="data">
-    Time:[[data.time]]<br>
-    Temp: [[data.temp]]<br>
-    Pl:[[data.pl]]<br>
-    Pa:[[data.pres]]<br>
-    DP:[[data.dpres]]<br>
-    Altitude:[[data.alti]]<br>
-    Average:[[data.avePres]]</p>
-  </blockquote>
-  <div id="panel" class="row">
-    <div class="form-group col-sm-3">
-          <label>Averaging times:</label>
+<div class="panel-info panel">
+    <div class="panel-heading">
+      <h3 class="panel-title">Pressure Sensor Demo</h3>
+    </div>
+    <div class="panel-body">
+    <div class="form-group col-sm-4">
+                    <label>Averaging times:</label>
           <select class="form-control" ng-model="avewindow" ng-change="changeAve()">
             <option>1</option>
             <option>10</option>
@@ -30,8 +23,25 @@
           <input type="range" name="points" min="10" max="1000" step="20" ng-model="range">
           <label>Center Value:</label>
           <input type="number" class="form-control" ng-model="middle">
+          <hr>
+          <label>Status: <h1><span class="label label-info">[[status]]</span></h1></label>
+    </div>
+    <div class="col-sm-4 list-group">
+        <a href="#" class="list-group-item">Time: [[data.time]]</a>
+        <a href="#" class="list-group-item">Temperature(°C): <span class="badge">[[data.temp]]</span></a>
+        <a href="#" class="list-group-item">Digital Value(DT): <span class="badge">[[data.dptat]]</span></a>
+        <a href="#" class="list-group-item">Air Pressure(Pa): <span class="badge">[[data.pres]]</span></a>
+        <a href="#" class="list-group-item">Digital Value(DP): <span class="badge">[[data.dpres]]</span></a>
+        <a href="#" class="list-group-item">Average(Pa): <span class="badge">[[data.avePres]]</span></a>
+    </div>
+      <div class="col-sm-4">
+      <ul class="list-group">
+        <li class="list-group-item" ng-repeat="elem in otp">[[elem.name]]: <span class="badge">[[elem.otpHex]]</span></li>
+      </ul>
+    </div>
     </div>
   </div>
+
 </div>
 <div class="panel panel-default">
   <div class="panel-heading">

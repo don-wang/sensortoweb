@@ -14,64 +14,6 @@ CHR_ACK = 'A'
 CHR_SETUP = 'S'
 CHR_RECEVIE ='R'
 
-chip = 2
-
-if chip == 1:
-    CP = -1040384
-    BP = 33.8281374553667
-    AP = -1.55337412640767E-05
-
-    CT = 1.05353412945952
-    BT = -8.7228131962035E-06
-    AT = 5.59473006378368E-11
-
-    CA = 3120224
-    BA = 40.4235810419019
-elif chip == 2:
-# #　渡してくれたソースコードでOPT加算したの定数を使っております
-#　140928送付したサンプルのＯＴＰから計算した値に修正
-
-#　平均と3σは以下のテーブルの通り
-#	係数	平均		3σ
-#	AP		-1.53E-05	1.38E-05
-#	BP		3.37E+01	6.42E+00
-#	CP		←OTP書き込みのそのままの値を使う
-#	AT		9.64E-11	6.56E-11
-#	BT		-9.41E-06	1.45E-06
-#	CT		1.06E+00	7.56E-03
-#	BA		4.18E+01	1.94E+00
-#	CA		←OTP書き込みのそのままの値を使う
-#	
-#	140928送付したサンプルのＯＴＰ読み値
-#	AP		F209
-#	BP		017C
-#	CP		41C2
-#	AT		F2C8
-#	BT		1C37
-#	CT		E1A6
-#	BA		49A0
-#	CA		EE2F
-#	
-#　以下計算結果と計算式
-
-    CP = -1160000
-    #  この数値を使用してください 
-    BP = 3.377445296E+01
-    #  = HEX2DEC(017C) * 6.42E+00 / 32767 + 3.37E+01
-    AP = -1.680563066E-05
-    #  = (HEX2DEC(F209) - 65536) * 1.38E-05 / 32767 + (-1.53E-05)
-
-    CT = 1.058207306E+00
-    #  = (HEX2DEC(E1A6) - 65536) * 7.56E-03 / 32767 + 1.06E+00
-    BT = -9.090368969E-06
-    #  = HEX2DEC(1C37) * 1.45E-06 / 32767 + (-9.41E-06)
-    AT = 8.962518387E-11
-    #  = (HEX2DEC(F2C8) - 65536) * 6.56E-11 / 32767 + 9.64E-11
-
-    CA = 3100000
-    #  この数値を使用してください
-    BA = 4.29159E+01
-#  = HEX2DEC(49A0) * 1.94E+00 / 32767 + 4.18E+01
 
 PRES_HP0 = 1013.25    # hPa in 0m of sea-surface
 PRES_TNOM = 273.15    # degC to Kelvin
@@ -80,6 +22,21 @@ PRES_PDEN = 5.257;     # denominator of Pressure
 
 Tnow = 25.0
 Hnow = 0.0
+
+otpReady = False
+otpAddr = [
+    {"name": "CEX", "ahex": "b2", "adec": 178, "k": None, "a": None, "s": None},
+    {"name": "PTAT3", "ahex": "a0", "adec": 160, "k": None, "a": None, "s": None},
+    {"name": "PTAT2", "ahex": "b0", "adec": 176, "k": "ba", "a": 4.18E+01, "s": 1.94},
+    {"name": "PTAT1", "ahex": "b2", "adec":178, "k": "ca", "a": "offset", "s": "offset"},
+    {"name": "TEMP3", "ahex": "b4", "adec":180, "k": "ct", "a": 1.0563, "s": 7.56E-03},
+    {"name": "TEMP2", "ahex": "b6", "adec":182, "k": "bt", "a": -9.41E-06, "s": 1.45E-06},
+    {"name": "TEMP1", "ahex": "b8", "adec":184, "k": "at", "a": 9.64E-11, "s": 6.56E-11},
+    {"name": "PR3", "ahex": "ba", "adec":186, "k": "cp", "a": "offset", "s": "offset"},
+    {"name": "PR2", "ahex": "bc", "adec":188, "k": "bp", "a": 3.37E+01, "s": 6.42},
+    {"name": "PR1", "ahex": "be", "adec":190, "k": "ap", "a": -1.53E-05, "s": 1.38E-05},
+]
+coeDict = {}
 
 presArrary = []
 
@@ -91,6 +48,34 @@ def conv16bit(buf):
     s = (buf[0] << 8) + buf[1];
     return s
 
+def conv16Sign(s):
+    if s >= 0:
+        if s & 0x8000 != 0:
+            s = s - 65536
+    return s
+
+def conv24Sign(s):
+    if s >= 0:
+        if s & 8388608 != 0:
+            s = s - 16777216
+    return s
+
+def constFromOtp():
+    global coeDict
+    for elem in otpAddr:
+        if elem['k'] != None and elem['a'] != "offset":
+            result = elem['a'] + conv16Sign(elem['otp']) * elem['s']  / 32767.0
+            coeDict[elem['k']] =  result
+        elif elem['a'] == "offset":
+            PTAT1 = filter(lambda d: d['name'] == "PTAT1",  otpAddr)[0]['otp']
+            PTAT3 = filter(lambda d: d['name'] == "PTAT3",  otpAddr)[0]['otp']
+            if elem['k'] == "ca":
+                ret = elem['otp'] & 0xff
+                coeDict[elem['k']] = (ret << 16) | PTAT3
+            if elem['k'] == "cp":
+                ret = (PTAT1 & 0xff00) >> 8
+                coeDict[elem['k']] = conv24Sign((ret << 16)) | elem['otp']
+    print coeDict
 
 def movingaverage(x, window):
     if len(x) > window+1:
@@ -105,12 +90,12 @@ def convPa(pkt):
     Dt = pkt['dptat']
     Dp = pkt['dpres']
 
-    wk = BP * BP - (4 * AP * (CP - Dp))
-    Pl = ( -1.0 * BP + math.sqrt(math.fabs(wk))) / (2 * AP)
+    wk = coeDict['bp'] * coeDict['bp'] - (4 * coeDict['ap'] * (coeDict['cp'] - Dp))
+    Pl = ( -1.0 * coeDict['bp'] + math.sqrt(math.fabs(wk))) / (2 * coeDict['ap'])
 
-    Tr = (Dt -CA) / BA
+    Tr = (Dt -coeDict['ca']) / coeDict['ba']
 
-    Po = Pl / (AT * Tr * Tr + BT * Tr + CT)
+    Po = Pl / (coeDict['at'] * Tr * Tr + coeDict['bt'] * Tr + coeDict['ct'])
 
 
     return round(Pl, 2), round(Tr/256, 2), round(Po, 2)

@@ -12,9 +12,13 @@ app.controller('Ctrl', function($scope, socket) {
     // scoket listenters
     socket.on('status', function (data) {
         // application logic ....
-        $scope.status = data.msg;
+        $scope.status = data;
     });
-
+    socket.on('otp', function (data) {
+        // application logic ....
+        console.log(data);
+        $scope.otp = JSON.parse(data);
+    });
     // scoket listenters
     socket.on('push', function (data) {
         // application logic ....
@@ -48,7 +52,7 @@ var n = 50,
     count = 0,
     data = d3.range(n).map(function() { return 0; });
 var margin = {top: 20, right: 80, bottom: 20, left: 0},
-    width = 360 - margin.left - margin.right,
+    width = 640 - margin.left - margin.right,
     height = 360 - margin.top - margin.bottom;
 
  
