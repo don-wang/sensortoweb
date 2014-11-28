@@ -11,20 +11,26 @@
     </div>
     <div class="panel-body">
     <div class="form-group col-sm-4">
-                    <label>Averaging times:</label>
-          <select class="form-control" ng-model="avewindow" ng-change="changeAve()">
+        <label>Mode:</label>
+        <select class="form-control" ng-model="mode" ng-change="changeMode()">
+            <option value="0">Pressure</option>
+            <option value="1">Altitude</option>
+        </select>
+        <label>Sea-level Offset(hPa):</label>
+        <input type="number" class="form-control"  min="0" ng-model="sealev" ng-change="changeSeaLev()">
+        <label>Averaging times:</label>
+        <select class="form-control" ng-model="avewindow" ng-change="changeAve()">
             <option>1</option>
             <option>10</option>
             <option>40</option>
             <option>100</option>
-          </select>
-
-          <label>Y-axis Range: <span class="badge">[[range]] Pa</span></label>
-          <input type="range" name="points" min="10" max="1000" step="20" ng-model="range">
-          <label>Center Value:</label>
-          <input type="number" class="form-control" ng-model="middle">
-          <hr>
-          <label>Status: <h1><span class="label label-info">[[status]]</span></h1></label>
+        </select>
+        <label>Y-axis Range: <span class="badge">[[range]]</span></label>
+        <input type="range" name="points" min="1" max="1000" step="3" ng-model="range">
+        <label>Center Value:</label>
+        <input type="number" class="form-control" ng-model="middle">
+        <hr>
+        <label>Status: <h1><span class="label label-info">[[status]]</span></h1></label>
     </div>
     <div class="col-sm-4 list-group">
         <a href="#" class="list-group-item">Time: [[data.time]]</a>
@@ -33,6 +39,7 @@
         <a href="#" class="list-group-item">Air Pressure(Pa): <span class="badge">[[data.pres]]</span></a>
         <a href="#" class="list-group-item">Digital Value(DP): <span class="badge">[[data.dpres]]</span></a>
         <a href="#" class="list-group-item">Average(Pa): <span class="badge">[[data.avePres]]</span></a>
+        <a href="#" class="list-group-item">Altitude(m): <span class="badge">[[data.alti]]</span></a>
     </div>
       <div class="col-sm-4">
       <ul class="list-group">
@@ -49,6 +56,7 @@
   </div>
   <div  class="panel-body">
     <div id="chart"></div>
+    <div id="alti"></div>
 </div>
 </div>
 <div id="log"></div>

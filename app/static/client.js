@@ -16,7 +16,7 @@ app.controller('Ctrl', function($scope, socket) {
     });
     socket.on('otp', function (data) {
         // application logic ....
-        console.log(data);
+        // console.log(data);
         $scope.otp = JSON.parse(data);
     });
     // scoket listenters
@@ -27,6 +27,14 @@ app.controller('Ctrl', function($scope, socket) {
 
         // var a = d.data.split(",");
         $scope.data = d;
+        if($scope.mode == "0"){
+          $scope.modeData = $scope.data.avePres;
+          $scope.range = 60;
+        } else if($scope.mode == "1"){
+          $scope.modeData = $scope.data.alti;
+          $scope.range = 3;
+        }
+
         // $scope.data.avePre
         // console.log(typeof(d));
     });
@@ -43,31 +51,62 @@ app.controller('Ctrl', function($scope, socket) {
         socket.emit('changeAve', {avewindow: $scope.avewindow});
         return false;
     }
+    $scope.changeSeaLev = function(){
+        socket.emit('changeSeaLev', {sealevel: $scope.sealev});
+        setTimeout(function(){
+          d3.select("#linechart").remove();
+          d3.select("#arc").remove();
+          $scope.reset = true;
+          draw();
+        }, 2000);
+    }
+    $scope.changeMode = function(){
+        d3.select("#linechart").remove();
+        d3.select("#arc").remove();
+        $scope.reset = true;
+
+        setTimeout(function(){
+          draw();
+        }, 2000);
+
+        return false;
+    }
+$scope.mode = "0";
 $scope.avewindow = 40;
+$scope.sealev = 1013.25;
 $scope.middle = 0;
-$scope.range = 60; 
+$scope.range = 60;
+$scope.reset = false
+
+var winWidth = window.innerWidth;
+
 var n = 50,
     duration = 200,
     now = new Date(Date.now() - duration),
     count = 0,
     data = d3.range(n).map(function() { return 0; });
 var margin = {top: 20, right: 80, bottom: 20, left: 0},
-    width = 640 - margin.left - margin.right,
-    height = 360 - margin.top - margin.bottom;
+    width = winWidth/2 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
 
- 
-var drawing = false;
+
+drawing = false;
 // var x = d3.scale.linear()
 //     .domain([1, n - 2])
 //     .range([0, width]);
+function draw(){
+  if($scope.reset == true){
+    drawing = false;
+    console.log(drawing);
 
+  }
 var x = d3.time.scale()
     .domain([now - (n - 2) * duration, now - duration])
     .range([0, width]);
 
 var y = d3.scale.linear()
-    .domain([1, 0])
-    .range([height, 0]);
+    .domain([0, 1])
+    .range([0, height]);
 
 var line = d3.svg.line()
     .interpolate("basis")
@@ -86,8 +125,6 @@ svg.append("circle")
     .attr("fill", "white")
     .attr("cx", width * 0.8)
     .attr("cy", height * 0.1)
-
-
 
 svg.append("defs").append("clipPath")
     .attr("id", "clip")
@@ -118,26 +155,25 @@ d3.select("g").append("foreignObject")
     .attr("height", "120px")
     .attr("x",0)
     .attr("y",-10)
-    .html("<p class='chara'></p>");    
+    .html("<p class='chara'></p>");
 
 
 // setTimeout(tick(), 1000);
 
 tick();
 
+
 function tick() {
     if($scope.data){
-    console.log($scope.data);
+    // console.log($scope.data);
     }else{
       console.log("No data");
     }
 
-  var d = $scope.data?$scope.data.avePres:0;
+  var d = $scope.data?$scope.modeData:0;
   // push a new data point onto the back
   now = new Date();
   x.domain([now - (n - 2) * duration, now - duration]);
-
-
   // y.domain([d3.max(data), d3.min(data)])
   //   .range([height, 0]);
 
@@ -146,14 +182,16 @@ function tick() {
   var first = Math.floor(d3.max(d3.values(data)));
 
   if(drawing == false && first != 0){
-    $scope.middle = first;
+    $scope.middle = d;
     drawing = true;
+    $scope.reset == true
     panel();
+    console.log(first);
 
   }
 
   y.domain([$scope.middle + $scope.range/2, $scope.middle - $scope.range/2])
-    .range([height, 0]);
+    .range([0, height]);
 
   svg.selectAll("g.y.axis")
       .call(y.axis);
@@ -176,8 +214,8 @@ function tick() {
       .attr("transform", "translate(" + x(now - (n - 1) * duration) + ")")
       .each("end", tick);
 
-
-charay = (data[24] + $scope.range/2 - $scope.middle)/$scope.range * height - 100;
+// data[24] + $scope.range/2 - $scope.middle
+charay = 250 - (data[24] + $scope.range/2 - $scope.middle)/$scope.range * height;
 d3.select("#charap").transition()
         .duration(100)
         .attr("x",width /2 - 40)
@@ -188,20 +226,19 @@ d3.select("#charap").transition()
   // pop the old data point off the front
   data.shift();
 }
-
-
+}
 
 function panel(){
 // Set Up
   var pi = Math.PI; var iR=170;  var oR=110;
   var margin = {top: 20, right: 5, bottom: 20, left: 5},
-    width = 360 - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom;
-  var cur_color = 'limegreen';  var new_color, hold; 
+    width = winWidth/2 - margin.left - margin.right,
+    height = winWidth/2 - margin.top - margin.bottom;
+  var cur_color = 'limegreen';  var new_color, hold;
   var max = Math.floor($scope.middle + $scope.range/2), min = Math.floor($scope.middle - $scope.range/2), current = Math.floor($scope.middle);
   var arc = d3.svg.arc().innerRadius(iR).outerRadius(oR).startAngle(-90 * (pi/180)); // Arc Defaults
   // Place svg element
-  var svg = d3.select("#chart").append("svg").attr("width", width).attr("height", height)
+  var svg = d3.select("#chart").append("svg").attr("id", "arc").attr("width", width).attr("height", height)
     .append("g").attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
   var background = svg.append("path").datum({endAngle:  90 * (pi/180)}).style("fill", "#ddd").attr("d", arc);// Append background arc to svg
   var foreground = svg.append("path").datum({endAngle: -90 * (pi/180)}).style("fill", cur_color).attr("d", arc); // Append foreground arc to svg
@@ -215,7 +252,7 @@ function panel(){
               .attr("text-anchor", "middle").style("font-size", "50").style("font-family", "Helvetica").text(current)
   // Update every x seconds
   setInterval(function() {
-  pres = Math.floor($scope.data.avePres);
+  pres = Math.floor($scope.modeData);
   cupa = pres;
   pres = (pres > $scope.middle + $scope.range/2)?$scope.middle + $scope.range/2:pres;
   pres = (pres < $scope.middle - $scope.range/2)?$scope.middle + $scope.range/2:pres;
@@ -234,6 +271,8 @@ function panel(){
     transition.attrTween("d", function(d) {var interpolate = d3.interpolate(d.endAngle, newAngle);
               return function(t) {d.endAngle = interpolate(t);  return arc(d);  };  }); } // Update animation
   }
+
+draw();
 });
 
 app.factory('socket', function ($rootScope) {

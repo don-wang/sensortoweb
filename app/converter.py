@@ -100,12 +100,10 @@ def convPa(pkt):
 
     return round(Pl, 2), round(Tr/256, 2), round(Po, 2)
 
-def meterFromPa(pa):
+def paToAlti(pa, t, P0):
     hpa = pa/100
-    ret = math.pow(PRES_HP0 / hpa, 1 / PRES_PDEN) - 1
-    ret = ret * (Tnow + PRES_TNOM)
-    ret = ret / PRES_HDEN + Hnow
-    return round(ret, 2)
+    z = (t + 273.15) * (1 - (hpa/P0) ** (1/5.257))/0.0065
+    return round(z, 2)
 
 def skipToDelim(seq):
     while(len(seq) > 0):
@@ -132,7 +130,6 @@ def parseRecPkt(pkt, buf):
         pkt['data'] =buf[1]
         buf.pop(0)
     pkt['pl'],pkt['temp'], pkt['pres'] = convPa(pkt)
-
     return pkt
     # print pkt
 
@@ -187,14 +184,15 @@ def parsePkt(seq):
     elif pkt['type'] == CHR_ACK:
         # parseAckPkt
         pass
-    else:
-        i = 0
-        while i < len(pkt) and len(seq) > 0:
-            d += seq[0]
-            i += 1
-            seq.pop(0)
-        print d
-        return None
+    # else:
+    #     i = 0
+    #     d = 0
+    #     while i < len(pkt) and len(seq) > 0:
+    #         d += seq[0]
+    #         i += 1
+    #         seq.pop(0)
+    #     print d
+    #     return None
 
     if len(seq) >= 1:
         pkt['chksum'] = seq[0]
