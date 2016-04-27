@@ -33,7 +33,11 @@
         <label>Status: <h1><span class="label label-info">[[status]]</span></h1></label>
     </div>
     <div class="col-sm-4 list-group">
-        <a href="#" class="list-group-item">Time: [[data.time]]</a>
+        <a href="#" class="list-group-item" id="timestamp">Time: </a>
+        <script>
+            setInterval(function(){ document.getElementById("timestamp").innerHTML = new Date();
+        }, 500);
+        </script>
         <a href="#" class="list-group-item">Temperature(°C): <span class="badge">[[data.temp]]</span></a>
         <a href="#" class="list-group-item">Digital Value(DT): <span class="badge">[[data.dptat]]</span></a>
         <a href="#" class="list-group-item">Air Pressure(Pa): <span class="badge">[[data.pres]]</span></a>

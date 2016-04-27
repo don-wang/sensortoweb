@@ -41,7 +41,7 @@ def listening():
         n = 0
         while  n < 10:
             ser.write(binascii.a2b_hex("a5044b"+ otpAddr[n]['ahex'] +"00c3"))
-            socketio.emit('status', "Reading OTP", namespace='/main')
+            socketio.emit('status', "Reading OTP...", namespace='/main')
             socketio.emit('otp', json.dumps(otpAddr), namespace='/main')
             rcv = ser.read(2)
             seq = map(ord,rcv)
@@ -57,7 +57,9 @@ def listening():
                     n += 1
         otpReady = True
         constFromOtp()
+
         socketio.emit('otp', json.dumps(otpAddr), namespace='/main')
+
 
     while True:
         "OTP GOT"
@@ -74,7 +76,7 @@ def listening():
         if 'pres' in pkt:
             presArrary.append(pkt['pres'])
         if len(presArrary) >= avewindow:
-            socketio.emit('status', "Working", namespace='/main')
+            socketio.emit('status', "Sensing", namespace='/main')
             while len(presArrary) >= avewindow:
                 presArrary.pop(0)
             ave = movingaverage(presArrary, 5)
@@ -83,11 +85,14 @@ def listening():
             else:
                 pkt['avePres'] = round(np.mean(ave), 2)
             pkt['alti'] = paToAlti(pkt['avePres'], pkt['temp'], P0)
-            dpres = int(pkt['avePres'])
+            pkt['sealev'] = P0
+	    pkt['avewindow'] = avewindow
+	    dpres = int(pkt['avePres'])
             socketio.emit('push', json.dumps(pkt), namespace='/main')
             socketio.emit('dpres', json.dumps(dpres))
+            socketio.emit('otp', json.dumps(otpAddr), namespace='/main')
         else:
-            socketio.emit('status', "Averaging Data", namespace='/main')
+            socketio.emit('status', "Averaging Data...", namespace='/main')
         # print(binascii.b2a_hex(rcv))
         # print pkt
         # time.sleep(1)
@@ -129,11 +134,11 @@ def changeAve(data):
 @socketio.on('changeSeaLev', namespace='/main')
 def changeSeaLev(data):
     global P0
-    if 'sealevel' in data and data['sealevel']/1.0 != 0:
-        P0 = data['sealevel']/1.0
+    if 'sealevel' in data and data['sealevel'] !=0 and data['sealevel'] != None :
+        P0 = float(data['sealevel'])
     else:
         P0 = 1.0
-    print "avewindow changed to %d" %P0
+    print "SeaLevel changed to %f" %P0
 
 @socketio.on('SEND')
 def send(msg):
